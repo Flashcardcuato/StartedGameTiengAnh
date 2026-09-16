@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Mystery Scientist</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- VŨ TRỤ -->
+    <div class="stars"></div>
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+
+    <!-- HÀNH TINH -->
+    <div class="planet planet-left"></div>
+
+    <div class="planet planet-right">
+      <div class="ring"></div>
+    </div>
+
+    <div class="small-planet"></div>
+
+    <main class="container">
+      <!-- ================= START ================= -->
+
+      <section id="startScreen" class="start-screen">
+        <div class="orbit-icon">🪐</div>
+
+        <h1>Mystery Scientist</h1>
+
+        <p class="start-description">
+          Enter the universe of science and<br />
+          discover the mysterious scientist.
+        </p>
+
+        <div class="game-info">
+          <div class="info-box">
+            <span>🔎</span>
+            <p>10 Questions</p>
+          </div>
+
+          <div class="info-box">
+            <span>🧠</span>
+            <p>Test Yourself</p>
+          </div>
+
+          <div class="info-box">
+            <span>🌌</span>
+            <p>1 Mystery</p>
+          </div>
+        </div>
+
+        <button class="start-button" onclick="startQuiz()">
+          🚀 START QUIZ
+        </button>
+
+        <p class="start-note">
+          Answer every question correctly to reveal the mystery.
+        </p>
+      </section>
+
+      <!-- ================= QUIZ ================= -->
+
+      <section id="quiz" style="display: none">
+        <header>
+          <div class="title-line">
+            <span class="mini-planet">🪐</span>
+
+            <h1>Mystery Scientist</h1>
+          </div>
+
+          <p class="intro">Follow the questions and discover the scientist.</p>
+        </header>
+
+        <!-- TIẾN ĐỘ -->
+
+        <div class="progress-container">
+          <div class="progress-background">
+            <div id="progressBar"></div>
+          </div>
+
+          <span id="progressText"> 1 / 10 </span>
+        </div>
+
+        <!-- CÂU HỎI -->
+
+        <div class="question-card">
+          <p id="questionNumber" class="question-number"></p>
+
+          <h2 id="question" class="question"></h2>
+
+          <!-- HINT -->
+
+          <div id="hint" class="hint"></div>
+
+          <!-- ĐÁP ÁN -->
+
+          <div id="answers" class="answers"></div>
+
+          <!-- NEXT -->
+
+          <button
+            id="nextBtn"
+            class="next-button"
+            onclick="nextQuestion()"
+            style="display: none"
+          >
+            Next Question →
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= KẾT QUẢ ================= -->
+
+      <section id="result" class="result" style="display: none">
+        <div class="result-orbit">🌌</div>
+
+        <h1>Mystery Solved!</h1>
+
+        <p class="result-text">The mysterious scientist was</p>
+
+        <div class="mystery-name">Albert Einstein</div>
+
+        <p id="scoreText" class="score"></p>
+
+        <button class="restart-button" onclick="restartQuiz()">
+          🔄 Try Again
+        </button>
+      </section>
+
+      <!-- CHỮ KÝ -->
+
+      <div class="signature">HuyGPT</div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
