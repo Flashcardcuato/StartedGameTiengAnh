@@ -171,7 +171,7 @@ function initAudio() {
     masterGain.connect(audioContext.destination);
 
     musicGain = audioContext.createGain();
-    musicGain.gain.value = 0.08;
+    musicGain.gain.value = 1;
 
     musicGain.connect(masterGain);
   }
@@ -322,7 +322,6 @@ function playCompleteSound() {
     gain.gain.exponentialRampToValueAtTime(0.18, start + 0.03);
 
     gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
-
     oscillator.connect(gain);
     gain.connect(masterGain);
 
