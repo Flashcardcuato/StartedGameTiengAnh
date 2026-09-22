@@ -143,10 +143,279 @@ const questions = [
 ========================================= */
 
 let currentQuestion = 0;
-
 let score = 0;
-
 let answered = false;
+
+/* =========================================
+   AUDIO SYSTEM
+   Web Audio API
+========================================= */
+
+let audioContext = null;
+let masterGain = null;
+let musicGain = null;
+let musicEnabled = true;
+let musicTimer = null;
+let musicStep = 0;
+
+/*
+  Tạo AudioContext sau khi người dùng tương tác.
+*/
+function initAudio() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterGain = audioContext.createGain();
+    masterGain.gain.value = 0.7;
+
+    masterGain.connect(audioContext.destination);
+
+    musicGain = audioContext.createGain();
+    musicGain.gain.value = 0.08;
+
+    musicGain.connect(masterGain);
+  }
+
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
+  }
+}
+
+/*
+  Âm thanh click.
+*/
+function playClickSound() {
+  initAudio();
+
+  const now = audioContext.currentTime;
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = "sine";
+
+  oscillator.frequency.setValueAtTime(500, now);
+  oscillator.frequency.exponentialRampToValueAtTime(800, now + 0.06);
+
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+  oscillator.connect(gain);
+  gain.connect(masterGain);
+
+  oscillator.start(now);
+  oscillator.stop(now + 0.1);
+}
+
+/*
+  Âm thanh trả lời đúng.
+*/
+function playCorrectSound() {
+  initAudio();
+
+  const now = audioContext.currentTime;
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = "sine";
+
+  oscillator.frequency.setValueAtTime(520, now);
+  oscillator.frequency.setValueAtTime(660, now + 0.1);
+  oscillator.frequency.setValueAtTime(780, now + 0.2);
+
+  gain.gain.setValueAtTime(0.0001, now);
+
+  gain.gain.exponentialRampToValueAtTime(0.18, now + 0.03);
+
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+
+  oscillator.connect(gain);
+  gain.connect(masterGain);
+
+  oscillator.start(now);
+  oscillator.stop(now + 0.45);
+}
+
+/*
+  Âm thanh trả lời sai.
+*/
+function playWrongSound() {
+  initAudio();
+
+  const now = audioContext.currentTime;
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = "sawtooth";
+
+  oscillator.frequency.setValueAtTime(220, now);
+  oscillator.frequency.exponentialRampToValueAtTime(120, now + 0.25);
+
+  gain.gain.setValueAtTime(0.0001, now);
+
+  gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+  oscillator.connect(gain);
+  gain.connect(masterGain);
+
+  oscillator.start(now);
+  oscillator.stop(now + 0.3);
+}
+
+/*
+  Âm thanh chuyển câu.
+*/
+function playNextSound() {
+  initAudio();
+
+  const now = audioContext.currentTime;
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = "triangle";
+
+  oscillator.frequency.setValueAtTime(400, now);
+  oscillator.frequency.exponentialRampToValueAtTime(650, now + 0.12);
+
+  gain.gain.setValueAtTime(0.0001, now);
+
+  gain.gain.exponentialRampToValueAtTime(0.1, now + 0.02);
+
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+  oscillator.connect(gain);
+  gain.connect(masterGain);
+
+  oscillator.start(now);
+  oscillator.stop(now + 0.2);
+}
+
+/*
+  Âm thanh hoàn thành quiz.
+*/
+function playCompleteSound() {
+  initAudio();
+
+  const now = audioContext.currentTime;
+
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+
+  notes.forEach((frequency, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    const start = now + index * 0.15;
+
+    oscillator.type = "sine";
+
+    oscillator.frequency.value = frequency;
+
+    gain.gain.setValueAtTime(0.0001, start);
+
+    gain.gain.exponentialRampToValueAtTime(0.18, start + 0.03);
+
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
+
+    oscillator.connect(gain);
+    gain.connect(masterGain);
+
+    oscillator.start(start);
+    oscillator.stop(start + 0.4);
+  });
+}
+
+/* =========================================
+   BACKGROUND MUSIC
+========================================= */
+
+const musicNotes = [
+  261.63, 329.63, 392.0, 329.63, 293.66, 349.23, 440.0, 349.23,
+];
+
+function playMusicNote() {
+  if (!musicEnabled) {
+    return;
+  }
+
+  initAudio();
+
+  const now = audioContext.currentTime;
+
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = "sine";
+
+  oscillator.frequency.value = musicNotes[musicStep % musicNotes.length];
+
+  gain.gain.setValueAtTime(0.0001, now);
+
+  gain.gain.exponentialRampToValueAtTime(0.035, now + 0.08);
+
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+
+  oscillator.connect(gain);
+  gain.connect(musicGain);
+
+  oscillator.start(now);
+  oscillator.stop(now + 0.7);
+
+  musicStep++;
+}
+
+function startBackgroundMusic() {
+  initAudio();
+
+  if (musicTimer) {
+    return;
+  }
+
+  musicStep = 0;
+
+  playMusicNote();
+
+  musicTimer = setInterval(() => {
+    playMusicNote();
+  }, 700);
+}
+
+function stopBackgroundMusic() {
+  if (musicTimer) {
+    clearInterval(musicTimer);
+    musicTimer = null;
+  }
+}
+
+function toggleMusic() {
+  initAudio();
+
+  musicEnabled = !musicEnabled;
+
+  if (musicEnabled) {
+    startBackgroundMusic();
+  } else {
+    stopBackgroundMusic();
+  }
+
+  updateMusicButton();
+}
+
+function updateMusicButton() {
+  const button = document.getElementById("musicToggle");
+
+  if (!button) {
+    return;
+  }
+
+  button.textContent = musicEnabled ? "🔊 Music" : "🔇 Music";
+}
 
 /* =========================================
    SHUFFLE
@@ -169,6 +438,12 @@ function shuffle(array) {
 ========================================= */
 
 function startQuiz() {
+  initAudio();
+
+  playClickSound();
+
+  startBackgroundMusic();
+
   document.getElementById("startScreen").style.display = "none";
 
   document.getElementById("quiz").style.display = "block";
@@ -178,6 +453,8 @@ function startQuiz() {
   currentQuestion = 0;
 
   score = 0;
+
+  answered = false;
 
   loadQuestion();
 }
@@ -209,6 +486,10 @@ function loadQuestion() {
 
   const answersBox = document.getElementById("answers");
 
+  /*
+    Xóa toàn bộ đáp án và thông báo
+    của câu hỏi trước.
+  */
   answersBox.innerHTML = "";
 
   /* =====================================
@@ -226,6 +507,8 @@ function loadQuestion() {
       button.textContent = answer;
 
       button.onclick = function () {
+        playClickSound();
+
         chooseAnswer(answer, button);
       };
 
@@ -233,8 +516,9 @@ function loadQuestion() {
     });
   } else {
     /* =====================================
-     TEXT
-  ===================================== */
+       TEXT
+    ===================================== */
+
     const input = document.createElement("input");
 
     input.id = "textAnswer";
@@ -254,11 +538,15 @@ function loadQuestion() {
     button.textContent = "Check Answer ✓";
 
     button.onclick = function () {
+      playClickSound();
+
       checkTextAnswer();
     };
 
     input.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
+        playClickSound();
+
         checkTextAnswer();
       }
     });
@@ -270,10 +558,23 @@ function loadQuestion() {
 }
 
 /* =========================================
-   WRONG MESSAGE
+   ANSWER MESSAGE
 ========================================= */
 
+/*
+  Hiện thông báo sai.
+*/
 function showWrongMessage() {
+  /*
+    Nếu đang có thông báo đúng
+    thì xóa nó trước.
+  */
+  const correctMessage = document.querySelector(".correct-message");
+
+  if (correctMessage) {
+    correctMessage.remove();
+  }
+
   let message = document.querySelector(".wrong-message");
 
   if (!message) {
@@ -287,6 +588,33 @@ function showWrongMessage() {
   message.textContent = "❌ Incorrect! Try again.";
 }
 
+/*
+  Hiện thông báo đúng.
+
+  Quan trọng:
+  Khi người chơi trước đó trả lời sai,
+  .wrong-message sẽ bị xóa hoàn toàn.
+*/
+function showCorrectMessage() {
+  const wrongMessage = document.querySelector(".wrong-message");
+
+  if (wrongMessage) {
+    wrongMessage.remove();
+  }
+
+  let message = document.querySelector(".correct-message");
+
+  if (!message) {
+    message = document.createElement("div");
+
+    message.className = "correct-message";
+
+    document.getElementById("answers").appendChild(message);
+  }
+
+  message.textContent = "✓ Correct! Well done.";
+}
+
 /* =========================================
    MULTIPLE CHOICE
 ========================================= */
@@ -298,6 +626,12 @@ function chooseAnswer(answer, button) {
 
   const q = questions[currentQuestion];
 
+  /*
+    ==============================
+    ĐÚNG
+    ==============================
+  */
+
   if (answer === q.correct) {
     answered = true;
 
@@ -305,6 +639,19 @@ function chooseAnswer(answer, button) {
 
     button.classList.add("correct");
 
+    /*
+      Xóa chữ đỏ + hiện chữ xanh.
+    */
+    showCorrectMessage();
+
+    /*
+      Phát âm thanh đúng.
+    */
+    playCorrectSound();
+
+    /*
+      Khóa toàn bộ đáp án.
+    */
     const buttons = document.querySelectorAll(".answer");
 
     buttons.forEach((btn) => {
@@ -313,16 +660,30 @@ function chooseAnswer(answer, button) {
 
     showNextButton();
   } else {
+    /*
+      ==============================
+      SAI
+      ==============================
+    */
+
     button.classList.add("wrong");
 
     button.disabled = true;
 
+    /*
+      Phát âm thanh sai.
+    */
+    playWrongSound();
+
+    /*
+      Hiện chữ đỏ.
+    */
     showWrongMessage();
   }
 }
 
 /* =========================================
-   TEXT
+   TEXT ANSWER
 ========================================= */
 
 function checkTextAnswer() {
@@ -336,6 +697,12 @@ function checkTextAnswer() {
 
   const correctAnswer = questions[currentQuestion].correct.toLowerCase();
 
+  /*
+    ==============================
+    ĐÚNG
+    ==============================
+  */
+
   if (userAnswer === correctAnswer) {
     answered = true;
 
@@ -347,6 +714,16 @@ function checkTextAnswer() {
 
     input.style.borderColor = "#49f5bb";
 
+    /*
+      Xóa chữ đỏ + hiện chữ xanh.
+    */
+    showCorrectMessage();
+
+    /*
+      Âm thanh đúng.
+    */
+    playCorrectSound();
+
     const buttons = document.querySelectorAll("#answers button");
 
     buttons.forEach((button) => {
@@ -355,6 +732,14 @@ function checkTextAnswer() {
 
     showNextButton();
   } else {
+    /*
+      ==============================
+      SAI
+      ==============================
+    */
+
+    playWrongSound();
+
     showWrongMessage();
 
     input.value = "";
@@ -364,7 +749,7 @@ function checkTextAnswer() {
 }
 
 /* =========================================
-   NEXT
+   NEXT BUTTON
 ========================================= */
 
 function showNextButton() {
@@ -386,6 +771,8 @@ function nextQuestion() {
     return;
   }
 
+  playNextSound();
+
   if (currentQuestion < questions.length - 1) {
     currentQuestion++;
 
@@ -400,6 +787,10 @@ function nextQuestion() {
 ========================================= */
 
 function showResult() {
+  stopBackgroundMusic();
+
+  playCompleteSound();
+
   document.getElementById("quiz").style.display = "none";
 
   document.getElementById("result").style.display = "flex";
@@ -417,6 +808,10 @@ function showResult() {
 ========================================= */
 
 function restartQuiz() {
+  playClickSound();
+
+  stopBackgroundMusic();
+
   currentQuestion = 0;
 
   score = 0;
@@ -429,3 +824,74 @@ function restartQuiz() {
 
   document.getElementById("startScreen").style.display = "flex";
 }
+
+/* =========================================
+   MUSIC BUTTON
+========================================= */
+
+/*
+  Tạo nút Music nếu index.html
+  chưa có nút này.
+*/
+function createMusicButton() {
+  if (document.getElementById("musicToggle")) {
+    updateMusicButton();
+
+    return;
+  }
+
+  const button = document.createElement("button");
+
+  button.id = "musicToggle";
+
+  button.type = "button";
+
+  button.textContent = "🔊 Music";
+
+  button.onclick = function () {
+    playClickSound();
+
+    toggleMusic();
+  };
+
+  /*
+    Đặt nút ở góc trên bên phải.
+  */
+  button.style.position = "fixed";
+
+  button.style.top = "20px";
+
+  button.style.right = "20px";
+
+  button.style.zIndex = "9999";
+
+  button.style.padding = "10px 15px";
+
+  button.style.border = "1px solid rgba(120,150,255,0.5)";
+
+  button.style.borderRadius = "12px";
+
+  button.style.background = "rgba(8,14,45,0.85)";
+
+  button.style.color = "white";
+
+  button.style.fontSize = "14px";
+
+  button.style.fontWeight = "bold";
+
+  button.style.cursor = "pointer";
+
+  button.style.backdropFilter = "blur(8px)";
+
+  document.body.appendChild(button);
+
+  updateMusicButton();
+}
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+  createMusicButton();
+});
