@@ -166,7 +166,7 @@ function initAudio() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
     masterGain = audioContext.createGain();
-    masterGain.gain.value = 2;
+    masterGain.gain.value = 1.3;
 
     masterGain.connect(audioContext.destination);
 
