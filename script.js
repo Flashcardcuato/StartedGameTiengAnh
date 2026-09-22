@@ -171,7 +171,7 @@ function initAudio() {
     masterGain.connect(audioContext.destination);
 
     musicGain = audioContext.createGain();
-    musicGain.gain.value = 3;
+    musicGain.gain.value = 10;
 
     musicGain.connect(masterGain);
   }
